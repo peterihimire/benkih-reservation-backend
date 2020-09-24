@@ -1,0 +1,19 @@
+{
+  "name": "benkih-reservation-backend",
+  "version": "1.0.0",
+  "description": "Hotel room reservation app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "start-server": "node server.js"
+  },
+  "keywords": [
+    "reservation",
+    "room",
+    "hotel",
+    "benkih"
+  ],
+  "author": "Peter Ihimire",
+  "license": "ISC"
+}
