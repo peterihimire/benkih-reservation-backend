@@ -4,48 +4,49 @@
 const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
+const Room = require("../models/room");
 
-let DUMMY_ROOMS = [
-  {
-    id: "r1",
-    name: "single economy",
-    slug: "single-economy",
-    type: "single",
-    price: 100,
-    size: 200,
-    capacity: 1,
-    pets: false,
-    breakfast: false,
-    featured: false,
-    description:
-      "This is the description of this room one , which is a single economy.",
-    extras: [
-      "Plush pillows and breathable bed",
-      "Full-sized, pH-balanced toiletries",
-      "internet",
-    ],
-  },
-  {
-    id: "r2",
-    name: "double economy",
-    slug: "double-economy",
-    type: "single",
-    price: 200,
-    size: 400,
-    capacity: 2,
-    pets: true,
-    breakfast: false,
-    featured: true,
-    description:
-      "This is the description of this room two , which is a double economy.",
-    extras: [
-      "Plush pillows and breathable bed",
-      "Full-sized, pH-balanced toiletries",
-      "internet",
-      "free breakfast",
-    ],
-  },
-];
+// let DUMMY_ROOMS = [
+//   {
+//     id: "r1",
+//     name: "single economy",
+//     slug: "single-economy",
+//     type: "single",
+//     price: 100,
+//     size: 200,
+//     capacity: 1,
+//     pets: false,
+//     breakfast: false,
+//     featured: false,
+//     description:
+//       "This is the description of this room one , which is a single economy.",
+//     extras: [
+//       "Plush pillows and breathable bed",
+//       "Full-sized, pH-balanced toiletries",
+//       "internet",
+//     ],
+//   },
+//   {
+//     id: "r2",
+//     name: "double economy",
+//     slug: "double-economy",
+//     type: "single",
+//     price: 200,
+//     size: 400,
+//     capacity: 2,
+//     pets: true,
+//     breakfast: false,
+//     featured: true,
+//     description:
+//       "This is the description of this room two , which is a double economy.",
+//     extras: [
+//       "Plush pillows and breathable bed",
+//       "Full-sized, pH-balanced toiletries",
+//       "internet",
+//       "free breakfast",
+//     ],
+//   },
+// ];
 
 const DUMMY_USERS = [
   {
@@ -87,11 +88,13 @@ const getRoomsById = (req, res, next) => {
 // const getRooms = function(){...}
 
 // For create room
-const createRoom = (req, res, next) => {
+const createRoom = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    throw new HttpError("Invalid inputs passed, please check your data.", 422);
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
   }
 
   const {
@@ -109,8 +112,7 @@ const createRoom = (req, res, next) => {
   } = req.body;
   // const name = req.body.name;
 
-  const createdRoom = {
-    // id: uuidv4(),
+  const createdRoom = new Room({
     name,
     slug,
     type,
@@ -121,10 +123,35 @@ const createRoom = (req, res, next) => {
     breakfast,
     featured,
     description,
+    image:
+      "https://cdn.pixabay.com/photo/2016/03/31/20/51/book-1296045_960_720.png",
     extras,
-  };
+  });
 
-  DUMMY_ROOMS.push(createdRoom);
+  try {
+    await createdRoom.save();
+  } catch (err) {
+    const error = new HttpError("Creating room failed , please try again", 500);
+    return next(error);
+  }
+
+  // const createdRoom = {
+  //   // id: uuidv4(),
+  //   name,
+  //   slug,
+  //   type,
+  //   price,
+  //   size,
+  //   capacity,
+  //   pets,
+  //   breakfast,
+  //   featured,
+  //   description,
+  //   imageUrl,
+  //   extras,
+  // };
+
+  // DUMMY_ROOMS.push(createdRoom);
 
   res.status(201).json({ room: createdRoom });
 };

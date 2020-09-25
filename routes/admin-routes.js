@@ -22,6 +22,7 @@ router.post(
     check("breakfast").isBoolean(),
     check("featured").isBoolean(),
     check("description").isLength({ min: 5 }),
+    // check("image").not().isEmpty(),
     check("extras").isArray(),
   ],
   adminControllers.createRoom

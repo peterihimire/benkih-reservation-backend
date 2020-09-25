@@ -1,4 +1,5 @@
 const HttpError = require("../models/http-error");
+const Room = require("../models/room");
 
 const DUMMY_ROOMS = [
   {

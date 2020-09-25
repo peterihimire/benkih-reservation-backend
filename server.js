@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const roomsRoutes = require("./routes/rooms-routes");
 const adminRoutes = require("./routes/admin-routes");
@@ -35,7 +36,15 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "An unknown error occurred!" });
 });
 
-const PORT = 2020;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}...`);
-});
+const PORT = 8000;
+
+mongoose
+  .connect(
+    "mongodb+srv://peter:Y3vMqWvHfCYlEeH8@p-cluster.4rp62.mongodb.net/hotel?retryWrites=true&w=majority"
+  )
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}...`);
+    });
+  })
+  .catch((err) => console.log(err));
