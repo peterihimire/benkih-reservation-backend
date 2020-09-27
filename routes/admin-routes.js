@@ -28,7 +28,7 @@ router.post(
   adminControllers.createRoom
 );
 
-router.patch(
+router.put(
   "/room/:rid",
   [
     check("name").not().isEmpty(),
