@@ -5,15 +5,16 @@ const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
 const Room = require("../models/room");
+const User = require("../models/user");
 
-const DUMMY_USERS = [
-  {
-    id: "u1",
-    name: "Peter Ihimire",
-    email: "peterihimire@gmail.com",
-    password: "123456",
-  },
-];
+// const DUMMY_USERS = [
+//   {
+//     id: "u1",
+//     name: "Peter Ihimire",
+//     email: "peterihimire@gmail.com",
+//     password: "123456",
+//   },
+// ];
 
 // For getting all rooms
 const getRooms = async (req, res, next) => {
@@ -68,20 +69,23 @@ const createRoom = async (req, res, next) => {
     );
   }
 
-  const {
-    name,
-    slug,
-    type,
-    price,
-    size,
-    capacity,
-    pets,
-    breakfast,
-    featured,
-    description,
-    extras,
-  } = req.body;
-  // const name = req.body.name;
+  // if (!req.file) {
+  //   const error = new HttpError("No image provided .", 422);
+  //   next(error);
+  // }
+
+  const name = req.body.name;
+  const slug = req.body.slug;
+  const type = req.body.type;
+  const price = req.body.price;
+  const size = req.body.size;
+  const capacity = req.body.capacity;
+  const pets = req.body.pets;
+  const breakfast = req.body.breakfast;
+  const featured = req.body.featured;
+  const description = req.body.description;
+  // const image = req.file.path;
+  const extras = req.body.extras;
 
   const createdRoom = new Room({
     name,
@@ -94,6 +98,8 @@ const createRoom = async (req, res, next) => {
     breakfast,
     featured,
     description,
+    // image,
+    // image: "http://localhost:8000/" + req.file.path,
     image: "images/PETER-HERO.jpg",
     extras,
   });
@@ -217,9 +223,39 @@ const deleteRoomById = async (req, res, next) => {
 };
 
 // For getting Users
-const getUsers = (req, res, next) => {
+const getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong , could not find user",
+      500
+    );
+    return next(error);
+  }
+
   res.status(200);
-  res.json({ users: DUMMY_USERS });
+  res.json({ users: users });
+};
+
+// For getting  a single user
+const getUserById = async (req, res, next) => {
+  const userId = req.params.uid;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, user was not found.",
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200);
+  res.json({ message: "successful", user: user });
 };
 
 exports.getRooms = getRooms;
@@ -228,3 +264,4 @@ exports.createRoom = createRoom;
 exports.updateRoomById = updateRoomById;
 exports.deleteRoomById = deleteRoomById;
 exports.getUsers = getUsers;
+exports.getUserById = getUserById;

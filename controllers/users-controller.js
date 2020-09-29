@@ -1,15 +1,19 @@
-const HttpError = require("../models/http-error");
 // const { v4: uuidv4 } = require("uuid");
+
+const HttpError = require("../models/http-error");
+
 const { validationResult } = require("express-validator");
 
-const DUMMY_USERS = [
-  {
-    id: "u1",
-    name: "Peter Ihimire",
-    email: "peterihimire@gmail.com",
-    password: "123456",
-  },
-];
+const User = require("../models/user");
+
+// const DUMMY_USERS = [
+//   {
+//     id: "u1",
+//     name: "Peter Ihimire",
+//     email: "peterihimire@gmail.com",
+//     password: "123456",
+//   },
+// ];
 
 // Signup controller
 const signup = (req, res, next) => {
@@ -24,19 +28,46 @@ const signup = (req, res, next) => {
 
   const { name, email, password } = req.body;
 
-  const hasUser = DUMMY_USERS.find((u) => u.email === email);
-  if (hasUser) {
-    throw new HttpError("Could not create user , email already exist.", 422); // code 422 code used for invalid user input
-  }
-  const createdUser = {
-    id: uuidv4(),
+  const existingUser = User.findOne({ email: email })
+    .then((result) => {
+      if (existingUser) {
+        const error = new HttpError(
+          "User with that email already exist, please try again with another email.",
+          422
+        );
+        return next(error);
+      }
+    })
+    .catch((err) => {
+      const error = new HttpError(
+        "Something went wrong, signing up failed , please try again later.",
+        500
+      );
+      return next(error);
+    });
+
+  // if(existingUser)
+
+  const createdUser = new User({
     name,
     email,
+    image: "images/PETER-HERO.jpg",
     password,
-  };
+  });
 
-  DUMMY_USERS.push(createdUser);
-  res.status(201).json({ message: "User created", user: createdUser });
+  createdUser
+    .save()
+    .then((result) => {
+      console.log(result);
+      res.status(201).json({ message: "User created", user: result });
+    })
+    .catch((err) => {
+      const error = new HttpError(
+        "Something went wrong , could not create new user",
+        500
+      );
+      next(error);
+    });
 };
 
 // Login controller
@@ -51,7 +82,6 @@ const login = (req, res, next) => {
     ); // 401 means authentication failed
   }
   res.json({ message: "Yes, you are Logged In!" });
-  6;
 };
 
 exports.signup = signup;
