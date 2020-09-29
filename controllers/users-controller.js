@@ -6,47 +6,41 @@ const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
 
-// const DUMMY_USERS = [
-//   {
-//     id: "u1",
-//     name: "Peter Ihimire",
-//     email: "peterihimire@gmail.com",
-//     password: "123456",
-//   },
-// ];
+
 
 // Signup controller
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    throw new HttpError(
+    const error = new HttpError(
       "Invalid signup inputs passed, please check your data.",
       422
     );
+    return next(error);
   }
 
   const { name, email, password } = req.body;
 
-  const existingUser = User.findOne({ email: email })
-    .then((result) => {
-      if (existingUser) {
-        const error = new HttpError(
-          "User with that email already exist, please try again with another email.",
-          422
-        );
-        return next(error);
-      }
-    })
-    .catch((err) => {
-      const error = new HttpError(
-        "Something went wrong, signing up failed , please try again later.",
-        500
-      );
-      return next(error);
-    });
+  let existingUser;
 
-  // if(existingUser)
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (err) {
+    const error = new HttpError(
+      "Signing up failed, please try again later.",
+      500
+    );
+    return next(error);
+  }
+
+  if (existingUser) {
+    const error = new HttpError(
+      "User with that email already exist, please try again with another email.",
+      422
+    );
+    return next(error);
+  }
 
   const createdUser = new User({
     name,
@@ -55,19 +49,20 @@ const signup = (req, res, next) => {
     password,
   });
 
-  createdUser
-    .save()
-    .then((result) => {
-      console.log(result);
-      res.status(201).json({ message: "User created", user: result });
-    })
-    .catch((err) => {
-      const error = new HttpError(
-        "Something went wrong , could not create new user",
-        500
-      );
-      next(error);
-    });
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Signing up failed , please try again later.",
+      500
+    );
+    return next(error);
+  }
+
+  res.status(201).json({
+    message: "Signup successful!",
+    user: createdUser.toObject({ getters: true }),
+  });
 };
 
 // Login controller
